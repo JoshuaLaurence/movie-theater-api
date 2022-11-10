@@ -11,7 +11,7 @@ userRouter.get("/",
     async (request, response) => {
         try {
             const allUsers = await User.findAll()
-            if (allUsers === []) {
+            if (allUsers.length === 0) {
                 throw new Error("No users exists yet within the database")
             }
             response.status(200).send(allUsers)
