@@ -82,6 +82,7 @@ showsRouter.put("/:showID/updates",
 
 
 //Delete a specific show
+//Tested Using Postman
 showsRouter.delete("/:showID", async (request, response) => {
     try {
         const specificShow = await Show.destroy({ where : { id: request.params.showID }})
