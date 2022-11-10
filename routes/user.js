@@ -6,7 +6,7 @@ const userRouter = express.Router()
 const { Show, User } = require("../models")
 
 //Gets all the users within the database
-//Has been tested with postman
+//Has been tested with postman - Postman Pat Approved
 userRouter.get("/",
     async (request, response) => {
         try {
@@ -22,6 +22,7 @@ userRouter.get("/",
 );
 
 //Gets specific user when the router is passed a specific id
+//Postman Pat Approved
 userRouter.get("/:userID",
     async (request, response) => {
         try {
@@ -34,7 +35,11 @@ userRouter.get("/:userID",
             response.status(404).send(error.message) //Sends error with a 404 (not found) status code
         }
     }
-).get("/shows",
+)
+
+//Gets specific user's shows and returns a 404 if the user is yet to watch any shows
+//Postman Pat Approved
+userRouter.get("/:userID/shows",
     async (request, response) => {
         try {
             const specificUser = await User.findOne({ where : { id: request.params.userID } }, {include: Show})
