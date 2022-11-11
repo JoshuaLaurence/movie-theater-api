@@ -20,7 +20,6 @@ async function findShow(request, response, next) {
         if (specificShow === null) {
             throw new Error("No show with that ID exists within the database")
         }
-        console.log(specificShow.title)
         request.body = {...request.body, ...{"specificShow": specificShow}}
         console.log(request.body)
         next()
@@ -28,5 +27,6 @@ async function findShow(request, response, next) {
         response.status(404).send(error.message)
     }
 }
+
 
 module.exports = {toTitleCase, findShow}

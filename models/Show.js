@@ -7,6 +7,10 @@ const Show = db.define("shows", {
     genre: DataTypes.ENUM("Comedy", "Drama", "Horror", "Sitcom"),
     rating: DataTypes.INTEGER,
     status: DataTypes.STRING,
+    watched: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+    }
 });
 
 //exports

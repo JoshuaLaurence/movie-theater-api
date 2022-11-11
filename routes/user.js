@@ -6,6 +6,7 @@ const userRouter = express.Router()
 const { Show, User } = require("../models")
 
 const findUser = require("../middleware/user.middleware")
+const {findShow} = require("../middleware/shows.middleware")
 
 //Gets all the users within the database
 //Tested Using Postman
@@ -47,8 +48,21 @@ userRouter.get("/:userID/shows",
     }
 );
 
-
-
+//Retrieves specific show from users watched list, and if it isn't within the watched list, adds it
+//Tested Using Postman
+userRouter.put("/:userID/shows/:showID",
+    findUser,
+    findShow,
+    async (request, response) => {
+        const usersShows = await request.body.specificUser.getShows()
+        if (usersShows.includes(request.body.specificShow)) {
+            response.status(302).send("This show is already in this user's watched list")
+        }
+        await request.body.specificUser.addShow(request.body.specificShow)
+        await request.body.specificShow.update({watched: true})
+        response.status(200).send("This show is now in the user's watched list")
+    }
+)
 
 //Exporting userRouter
 module.exports = userRouter;

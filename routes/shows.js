@@ -6,7 +6,10 @@ const showsRouter = express.Router()
 const {User, Show} = require("../models")
 
 //Importing middleware
-const {toTitleCase, findShow} = require("../middleware/shows.middleware")
+const {toTitleCase, findShow } = require("../middleware/shows.middleware")
+
+//Import express-validator
+const { body, param, validationResult } = require("express-validator")
 
 //Gets all the shows within the database
 //Tested Using Postman
@@ -54,30 +57,57 @@ showsRouter.get("/genres/:genre",
 
 //Update the status of a show from "cancelled" to "on-going" or visa versa
 //Tested Using Postman
-showsRouter.put("/:showID/updates",
+showsRouter.put("/:showID/updates/:status",
     findShow,
+    param("status")
+        .isLength({min: 5, max: 25})
+        .custom((value) => {
+            if (/\s/.test(value)) {
+                return false
+            }
+            return true
+        })
+        .notEmpty(),
     async (request, response) => {
+
+        const errors = validationResult(request)
+        if (!errors.isEmpty()) {
+            return response.status(404).send({errors: errors.array()})
+        }
+
         try {
             const oldStatus = request.body.specificShow.status;
-            if (oldStatus === "cancelled") {
-                await request.body.specificShow.update({status : "on-going"})
-            } else { await request.body.specificShow.update({status : "cancelled"}) }
-            console.log(request.body.specificShow.status)
-            response.status(200).send(`Status of show ${request.body.specificShow.id} changed from ${oldStatus} to ${request.body.specificShow.status}`)
+            await request.body.specificShow.update({status : request.params.status})
+            response.status(200).send(`Status of show ${request.body.specificShow.id}
+                has been updated from ${oldStatus}
+                to ${request.body.specificShow.status}`)
         } catch (error) {
-            response.status(404).send(error.message) //Sends error with a 404 (not found) status code
+            response.status(500).send(error.message) //Sends error with a 404 (not found) status code
         }
     }
 )
 
 //Update the rating of a specific show
-//Yet to be tested
+//Tested Using Postman
 showsRouter.put("/:showID/watched/:rating",
+    findShow,
+    param("rating").isInt({min: 0, max:5}),
     async (request, response) => {
+
+        const errors = validationResult(request)
+        if (!errors.isEmpty()) {
+            return response.status(404).send(errors.array()[0].msg)
+        }
+
         try {
-
+            if (!request.body.specificShow.watched) {
+                throw new Error("This show has yet to be watched. You can only set ratings for watched shows")
+            }
+            const oldRating = request.body.specificShow.rating;
+            await request.body.specificShow.update({rating: request.params.rating});
+            response.status(200).send(`Rating updated from ${oldRating} to ${request.body.specificShow.rating}`)
         } catch (error) {
-
+            response.status(400).send(error.message)
         }
     }
 )
