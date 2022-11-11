@@ -6,7 +6,7 @@ const showsRouter = express.Router()
 const {User, Show} = require("../models")
 
 //Importing middleware
-const toTitleCase = require("../middleware/shows.middleware")
+const {toTitleCase, findShow} = require("../middleware/shows.middleware")
 
 //Gets all the shows within the database
 //Tested Using Postman
@@ -27,16 +27,9 @@ showsRouter.get("/",
 //Gets specific show when the router is passed a specific id
 //Tested Using Postman
 showsRouter.get("/:showID",
-    async (request, response) => {
-        try {
-            const specificShow = await Show.findOne({ where : { id: request.params.showID } })
-            if (specificShow === null) {
-                throw new Error("No show with that ID exists in the database")
-            }
-            response.status(200).send(specificShow)
-        } catch (error) {
-            response.status(404).send(error.message) //Sends error with a 404 (not found) status code
-        }
+    findShow,
+    (request, response) => {
+        response.status(200).send(request.body.specificShow)
     }
 )
 
@@ -62,20 +55,29 @@ showsRouter.get("/genres/:genre",
 //Update the status of a show from "cancelled" to "on-going" or visa versa
 //Tested Using Postman
 showsRouter.put("/:showID/updates",
+    findShow,
     async (request, response) => {
         try {
-            const specificShow = await Show.findOne({ where : { id: request.params.showID } })
-            console.log(specificShow.status)
-            if (specificShow !== null) {
-                const oldStatus = specificShow.status;
-                if (oldStatus === "cancelled") {
-                    await specificShow.update({status : "on-going"})
-                } else { await specificShow.update({status : "cancelled"}) }
-                console.log(specificShow.status)
-                response.status(200).send(`Status of show ${specificShow.id} changed from ${oldStatus} to ${specificShow.status}`)
-            } else { throw new Error("No show with that ID exists in the database") }
+            const oldStatus = request.body.specificShow.status;
+            if (oldStatus === "cancelled") {
+                await request.body.specificShow.update({status : "on-going"})
+            } else { await request.body.specificShow.update({status : "cancelled"}) }
+            console.log(request.body.specificShow.status)
+            response.status(200).send(`Status of show ${request.body.specificShow.id} changed from ${oldStatus} to ${request.body.specificShow.status}`)
         } catch (error) {
             response.status(404).send(error.message) //Sends error with a 404 (not found) status code
+        }
+    }
+)
+
+//Update the rating of a specific show
+//Yet to be tested
+showsRouter.put("/:showID/watched/:rating",
+    async (request, response) => {
+        try {
+
+        } catch (error) {
+
         }
     }
 )
@@ -83,17 +85,20 @@ showsRouter.put("/:showID/updates",
 
 //Delete a specific show
 //Tested Using Postman
-showsRouter.delete("/:showID", async (request, response) => {
-    try {
-        const specificShow = await Show.destroy({ where : { id: request.params.showID }})
-        if (specificShow === null) {
-            throw new Error("No show with that ID exists in the database")
+showsRouter.delete("/delete/:showID",
+    findShow,
+    async (request, response) => {
+        try {
+            await Show.destroy({where: {id: request.params.showID}})
+            response.status(200).send("Show Deleted")
+        } catch (error) {
+            response.status(500).send("Failed to delete show")
         }
-        response.status(200).send("Show deleted")
-    } catch (error) {
-        response.status(404).send(error.message) //Sends error with a 404 (not found) status code
     }
-})
+)
+
+//EXTENSION
+//Creating a show
 
 
 //Exporting showsRouter
