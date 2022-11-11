@@ -8,6 +8,8 @@ const { Show, User } = require("../models")
 const findUser = require("../middleware/user.middleware")
 const {findShow} = require("../middleware/shows.middleware")
 
+const {body, validationResult} = require("express-validator")
+
 //Gets all the users within the database
 //Tested Using Postman
 userRouter.get("/",
@@ -63,6 +65,27 @@ userRouter.put("/:userID/shows/:showID",
         response.status(200).send("This show is now in the user's watched list")
     }
 )
+
+//EXTENSION
+//Creating a user
+userRouter.post("/new",
+    body("username").notEmpty(),
+    body("password").notEmpty(),
+    async (request, response) => {
+        const errors = validationResult(request)
+        if (!errors.isEmpty()) {
+            return response.status(404).send(errors.array()[0].msg)
+        }
+
+        try {
+            const newUser = await User.create(request.body)
+            response.status(200).send(newUser)
+        } catch (error) {
+            response.status(500).send("Creation failed")
+        }
+    }
+)
+
 
 //Exporting userRouter
 module.exports = userRouter;

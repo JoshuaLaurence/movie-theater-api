@@ -11,11 +11,13 @@ const showsRouter = require("../routes/shows")
 
 seed();
 
+app.use(express.json())
 app.use("/users", userRouter)
 app.use("/shows", showsRouter)
-app.use(express.json())
 
 const port = 5001
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)
 })
+
+module.exports = app

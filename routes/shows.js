@@ -72,7 +72,7 @@ showsRouter.put("/:showID/updates/:status",
 
         const errors = validationResult(request)
         if (!errors.isEmpty()) {
-            return response.status(404).send({errors: errors.array()})
+            return response.status(404).send(errors.array())
         }
 
         try {
@@ -91,7 +91,7 @@ showsRouter.put("/:showID/updates/:status",
 //Tested Using Postman
 showsRouter.put("/:showID/watched/:rating",
     findShow,
-    param("rating").isInt({min: 0, max:5}),
+    param("rating").isNumeric({min: 0, max:5}),
     async (request, response) => {
 
         const errors = validationResult(request)
@@ -125,11 +125,27 @@ showsRouter.delete("/delete/:showID",
             response.status(500).send("Failed to delete show")
         }
     }
-)
+);
 
 //EXTENSION
 //Creating a show
+showsRouter.post("/new",
+    body("title").notEmpty(),
+    async (request, response) => {
+        const errors = validationResult(request)
+        if (!errors.isEmpty()) {
+            return response.status(500).send(errors.array()[0].msg)
+        }
 
+        console.log(request.body)
+        try {
+            const newShow = await Show.create(request.body)
+            response.status(200).send(newShow)
+        } catch (error) {
+            response.status(500).send("Creation failed")
+        }
+    }
+);
 
 //Exporting showsRouter
 module.exports = showsRouter;
